@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#2196F3">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ledger POS — Billing</title>
+<title>Ledger POS — Billing &amp; Inventory</title>
 <style>
   :root{
     --ink:#0b1220;
@@ -120,6 +120,8 @@
   .btn-primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);}
   .btn-danger{background:var(--danger-soft);border-color:#f3c9c2;color:var(--danger);}
   .btn-danger:hover{background:#f6d9d4;}
+  .btn-amber{background:var(--amber-soft);border-color:#fcd34d;color:var(--amber);}
+  .btn-amber:hover{background:#fef3c7;}
   .btn-ghost{background:transparent;border-color:transparent;}
   .btn-ghost:hover{background:var(--paper);}
   .btn-sm{padding:6px 10px;font-size:12.5px;}
@@ -165,28 +167,55 @@
   }
   .item-thumb img{width:100%;height:100%;object-fit:cover;}
   .item-thumb .ph{color:#b7c0d1;}
-  .item-info{padding:10px 11px 11px;flex:1;display:flex;flex-direction:column;gap:4px;}
+  .item-info{padding:10px 11px 11px;flex:1;display:flex;flex-direction:column;gap:2px;}
   .item-name{font-size:13px;font-weight:700;line-height:1.25;}
   .item-cat{font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;}
   .item-price{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:700;color:var(--accent-dark);margin-top:auto;}
   .item-unit{font-size:11px;color:var(--text-dim);font-weight:500;}
-  .add-btn{
-    position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:7px;border:none;
-    background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 2px 6px rgba(0,0,0,.2);
+
+  /* Stock Badges & Indicators */
+  .stock-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
   }
-  .add-btn:hover{background:var(--accent-dark);}
-  .reduce-btn{
-    position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:7px;border:none;
-    background:var(--danger);color:#fff;display:flex;align-items:center;justify-content:center;
-    font-size:16px;font-weight:700;
-    box-shadow:0 2px 6px rgba(0,0,0,.2);
+  .stock-badge.ok { background: #e3f3ed; color: var(--accent-dark); }
+  .stock-badge.low { background: #fef3c7; color: #b45309; }
+  .stock-badge.critical { background: var(--danger-soft); color: var(--danger); }
+  .stock-badge.out { background: #fee2e2; color: #991b1b; }
+
+  .item-card.low-stock {
+    border: 1.5px solid #f59e0b;
+    background-color: #fffbeb;
   }
-  .reduce-btn:hover{background:var(--danger);opacity:0.9;}
-  .qty-badge{
-    position:absolute;top:6px;left:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;
-    padding:2px 7px;border-radius:100px;font-family:var(--mono);
+  .item-card.out-of-stock {
+    border: 1.5px solid #f87171;
+    background-color: #fef2f2;
+    opacity: 0.85;
   }
+
+  .stock-tag {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .stock-tag.green { color: var(--accent-dark); }
+  .stock-tag.red { color: var(--danger); }
+
+  .conv-dest-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 100px 32px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    background: var(--paper);
+    padding: 8px;
+    border-radius: 8px;
+  }
+
   .qty-control{
     position:absolute;top:6px;left:6px;right:6px;z-index:2;
     display:flex;align-items:center;justify-content:space-between;gap:0;
@@ -202,7 +231,7 @@
   .qc-minus{background:var(--danger);}
   .qc-minus:hover:not(:disabled){background:#a53225;}
   .qc-plus{background:var(--ink);}
-  .qc-plus:hover{background:var(--accent-dark);}
+  .qc-plus:hover:not(:disabled){background:var(--accent-dark);}
   .qc-count{
     background:var(--accent);color:#fff;font-size:11px;font-weight:700;
     padding:2px 9px;border-radius:100px;font-family:var(--mono);
@@ -210,10 +239,28 @@
   }
   .qc-count:empty, .qc-count[data-zero="true"]{display:none;}
   .empty-state{
-    text-align:center;padding:50px 20px;color:var(--text-dim);
+    text-align:center;padding:35px 20px;color:var(--text-dim);
   }
   .empty-state h4{color:var(--text);margin:12px 0 4px;font-size:15px;}
   .empty-state p{font-size:13px;margin:0 0 16px;}
+
+  /* Dashboard Cards Extensions */
+  .stat-card.amber-card { border-left: 4px solid var(--amber); }
+  .stat-card.amber-card .value { color: var(--amber); }
+  .stat-card.danger-card { border-left: 4px solid var(--danger); }
+  .stat-card.danger-card .value { color: var(--danger); }
+
+  /* Movement Pills */
+  .m-pill {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-family: var(--mono);
+    font-weight: 700;
+  }
+  .m-pill.in { background: #e3f3ed; color: var(--accent-dark); }
+  .m-pill.out { background: var(--danger-soft); color: var(--danger); }
 
   /* ---------- Receipt / cart ---------- */
   .receipt{
@@ -250,7 +297,6 @@
   .trow{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--text-dim);}
   .trow.grand{font-size:17px;font-weight:800;color:var(--text);padding-top:8px;}
   .trow .amt{font-family:var(--mono);font-variant-numeric:tabular-nums;}
-  .tax-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);padding:2px 0 8px;}
   .receipt-actions{padding:14px 18px 18px;display:flex;gap:10px;}
   .receipt-actions .btn{flex:1;justify-content:center;}
   .torn-edge{
@@ -279,7 +325,7 @@
   .field{display:flex;flex-direction:column;gap:6px;}
   .field.full{grid-column:1/-1;}
   .field label{font-size:12px;font-weight:700;color:var(--text-dim);}
-  .field input[type=text],.field input[type=number],.field input[type=tel],.field select,.field textarea{
+  .field input[type=text],.field input[type=number],.field input[type=tel],.field input[type=date],.field select,.field textarea{
     padding:10px 12px;border-radius:8px;border:1px solid var(--line);font-size:13.5px;outline:none;background:var(--paper-2);
   }
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
@@ -293,7 +339,7 @@
   .img-drop span{font-size:12px;color:var(--text-dim);}
 
   /* ---------- Stat cards ---------- */
-  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
   .stat-card{background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
   .stat-card .label{font-size:11.5px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
   .stat-card .value{font-family:var(--mono);font-size:23px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;}
@@ -307,6 +353,14 @@
   .filter-bar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;}
   .filter-bar .field{min-width:150px;}
   .quick-btns{display:flex;gap:6px;}
+
+  /* ---------- Tabs ---------- */
+  .tab-bar{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:18px;}
+  .tab-btn{
+    padding:10px 18px;border:none;background:transparent;font-size:13.5px;font-weight:700;
+    color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;
+  }
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 
   /* ---------- Modal ---------- */
   .overlay{
@@ -332,7 +386,6 @@
 
   .badge{display:inline-block;padding:2px 9px;border-radius:100px;font-size:10.5px;font-weight:700;background:var(--accent-soft);color:var(--accent-dark);}
   .badge.amber{background:var(--amber-soft);color:var(--amber);}
-
   select.unit-select{padding:10px 12px;border-radius:8px;border:1px solid var(--line);}
 
   .section-title{font-size:13px;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;margin:26px 0 10px;}
@@ -357,8 +410,6 @@
       margin: 0;
     }
     .p-title{font-size:14px;font-weight:800;text-align:center;margin-bottom:2px;}
-    .p-logo{text-align:center;margin-bottom:4px;}
-    .p-logo img{max-width:60mm;max-height:50px;}
     .p-sub{font-size:10px;text-align:center;color:#333;margin-bottom:2px;line-height:1.2;}
     .p-hr{border:none;border-top:1px dashed #000;margin:4px 0;}
     .p-row{display:flex;justify-content:space-between;font-size:11px;margin:1px 0;}
@@ -407,7 +458,7 @@
       </div>
       <div>
         <div class="brand-name" id="sidebarShopName">Ledger POS</div>
-        <div class="brand-sub">Billing &amp; Reports</div>
+        <div class="brand-sub">Billing &amp; Inventory</div>
       </div>
     </div>
     <nav class="nav">
@@ -418,6 +469,14 @@
       <button class="nav-item" data-view="items" onclick="showView('items')">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/></svg>
         <span>Items</span>
+      </button>
+      <button class="nav-item" data-view="purchase" onclick="showView('purchase')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Purchase</span>
+      </button>
+      <button class="nav-item" data-view="stock" onclick="showView('stock')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="2"/><polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke="currentColor" stroke-width="2"/><line x1="12" y1="22.08" x2="12" y2="12" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Stock</span>
       </button>
       <button class="nav-item" data-view="reports" onclick="showView('reports')">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 20V10M11 20V4M18 20v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -512,7 +571,7 @@
             <table>
               <thead>
                 <tr>
-                  <th></th><th>Name</th><th>Category</th><th class="num">Price</th><th>Unit</th><th></th>
+                  <th></th><th>Name</th><th>Category</th><th class="num">Price</th><th>Unit</th><th class="num">Stock</th><th></th>
                 </tr>
               </thead>
               <tbody id="itemsTableBody"></tbody>
@@ -522,67 +581,265 @@
         </div>
       </div>
 
-      <!-- ============ REPORTS VIEW ============ -->
-      <div class="view" id="view-reports">
-        <div class="filter-bar">
-          <div class="field">
-            <label>From</label>
-            <input type="date" id="repFrom">
-          </div>
-          <div class="field">
-            <label>To</label>
-            <input type="date" id="repTo">
-          </div>
-          <div class="quick-btns">
-            <button class="btn btn-sm" onclick="setRange('today')">Today</button>
-            <button class="btn btn-sm" onclick="setRange('week')">This Week</button>
-            <button class="btn btn-sm" onclick="setRange('month')">This Month</button>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="renderReports()">Apply</button>
+      <!-- ============ PURCHASE VIEW ============ -->
+      <div class="view" id="view-purchase">
+        <div class="panel-head" style="padding:0 0 14px;border:none;">
+          <h3 style="font-size:16px;">Purchase Registry</h3>
+          <button class="btn btn-primary" onclick="openPurchaseModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
+            Add Purchase Entry
+          </button>
         </div>
-
-        <div class="stat-row">
-          <div class="stat-card"><div class="label">Total Sales</div><div class="value accent" id="repTotalSales">0.00</div></div>
-          <div class="stat-card"><div class="label">Bills</div><div class="value" id="repBillCount">0</div></div>
-          <div class="stat-card"><div class="label">Items Sold</div><div class="value" id="repItemsSold">0</div></div>
-          <div class="stat-card"><div class="label">Avg. Bill Value</div><div class="value" id="repAvgBill">0.00</div></div>
-        </div>
-
-        <div class="card" style="margin-bottom:18px;">
-          <div class="panel-head"><h3>Daily Sales</h3></div>
-          <div class="panel-body">
-            <div class="bar-chart" id="dailyBarChart"></div>
-          </div>
-        </div>
-
-        <div class="panel-head"><h3>Top Items</h3></div>
-          <div style="padding:14px;">
-            <div style="display:flex;gap:10px;margin-bottom:10px;font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;">
-              <div style="flex:1;">Item</div>
-              <div style="width:120px;display:flex;align-items:center;justify-content:flex-end;gap:6px;"><span>Qty Sold</span><button class="icon-btn" style="width:24px;height:24px;font-size:12px;padding:0;" id="sortQtySold" onclick="toggleSortTopItems('qty')">↕</button></div>
-              <div style="width:120px;display:flex;align-items:center;justify-content:flex-end;gap:6px;"><span>Revenue</span><button class="icon-btn" style="width:24px;height:24px;font-size:12px;padding:0;" id="sortRevenue" onclick="toggleSortTopItems('rev')">↕</button></div>
-            </div>
-            <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
-              <table style="font-size:12px;">
-                <tbody id="topItemsBody"></tbody>
-              </table>
-            </div>
-          </div>
-
         <div class="card">
-          <div class="panel-head">
-            <h3>Bills</h3>
-            <button class="btn btn-sm btn-ghost" onclick="exportRangeCSV()">Export CSV</button>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th><th>Item</th><th>Supplier</th><th>Inv #</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total Price</th><th>Notes</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="purchaseTableBody"></tbody>
+            </table>
+          </div>
+          <div id="purchaseEmpty" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- ============ STOCK DASHBOARD VIEW ============ -->
+      <div class="view" id="view-stock">
+        <!-- Stock Summary Cards -->
+        <div class="stat-row" style="margin-bottom:16px;">
+          <div class="stat-card"><div class="label">Total Products</div><div class="value" id="stkTotalProducts">0</div></div>
+          <div class="stat-card"><div class="label">Total Units</div><div class="value accent" id="stkTotalUnits">0</div></div>
+          <div class="stat-card amber-card"><div class="label">Low Stock</div><div class="value" id="stkLowStockCount">0</div></div>
+          <div class="stat-card danger-card"><div class="label">Out of Stock</div><div class="value" id="stkOutStockCount">0</div></div>
+          <div class="stat-card"><div class="label">Restocked Today</div><div class="value" id="stkRestockedToday">0</div></div>
+        </div>
+
+        <div class="panel-head" style="padding:0 0 14px;border:none;flex-wrap:wrap;gap:10px;">
+          <h3 style="font-size:16px;">Inventory Control Dashboard</h3>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="openConversionModal()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M16 3l4 4-4 4M20 7H9a4 4 0 0 0-4 4v1M8 21l-4-4 4-4M4 17h11a4 4 0 0 0 4-4v-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Loose Item Conversion
+            </button>
+          </div>
+        </div>
+
+        <!-- LOW STOCK ATTENTION SECTION -->
+        <div class="card" style="margin-bottom:20px;border-color:#fcd34d;">
+          <div class="panel-head" style="background:#fffbeb;">
+            <h3 style="color:#b45309;display:flex;align-items:center;gap:6px;">⚠️ Low Stock Items</h3>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Bill #</th><th>Date &amp; Time</th><th class="num">Items</th><th class="num">Total</th><th></th></tr></thead>
-              <tbody id="billsBody"></tbody>
+              <thead>
+                <tr>
+                  <th>Image</th><th>Item Name</th><th>Category</th><th class="num">Current Stock</th><th class="num">Min Threshold</th><th>Status</th><th>Last Purchased</th><th>Quick Action</th>
+                </tr>
+              </thead>
+              <tbody id="lowStockTableBody"></tbody>
             </table>
           </div>
         </div>
-        <div style="margin-top:16px;padding:16px;background:var(--paper);border-radius:10px;text-align:center;">
-          <p style="margin:0;font-size:12px;color:var(--text-dim);">Swipe left or click the row to view bill details. Use <button class="btn btn-sm btn-danger" style="display:inline-flex;padding:3px 8px;" onclick="alert('Delete bills from the trash icon')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19 6H5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button> icon to delete.</p>
+
+        <!-- OUT OF STOCK ATTENTION SECTION -->
+        <div class="card" style="margin-bottom:20px;border-color:#f87171;">
+          <div class="panel-head" style="background:#fef2f2;">
+            <h3 style="color:#991b1b;display:flex;align-items:center;gap:6px;">❌ Out Of Stock Items</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Image</th><th>Item Name</th><th>Category</th><th>Status</th><th>Last Purchased</th><th>Quick Action</th>
+                </tr>
+              </thead>
+              <tbody id="outOfStockTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- MAIN INVENTORY MASTER TABLE WITH FILTERS & SORTING -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="panel-head" style="flex-wrap:wrap;gap:10px;">
+            <h3>Inventory Master</h3>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="stkSearchInput" placeholder="Search item or category..." oninput="renderStockTable()" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12.5px;">
+              <select id="stkFilterSelect" onchange="renderStockTable()" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12.5px;">
+                <option value="all">All Items</option>
+                <option value="in">In Stock</option>
+                <option value="low">Low Stock (&le;5)</option>
+                <option value="out">Out of Stock (=0)</option>
+                <option value="recent">Recently Updated</option>
+              </select>
+              <select id="stkSortSelect" onchange="renderStockTable()" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12.5px;">
+                <option value="name">Sort by Name</option>
+                <option value="stock_asc">Lowest Stock First</option>
+                <option value="stock_desc">Highest Stock First</option>
+                <option value="updated">Recently Updated</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Item Name</th><th>Category</th><th class="num">Current Stock</th><th>Unit</th><th>Status</th><th>Stock Movement</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="stockTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- MANUAL ADJUSTMENT AUDIT LOG -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="panel-head"><h3>Manual Adjustment Log</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date &amp; Time</th><th>Item Name</th><th>Type</th><th class="num">Qty Changed</th><th class="num">Prev Stock</th><th class="num">New Stock</th><th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="adjustmentHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CONVERSION AUDIT LOG -->
+        <div class="card">
+          <div class="panel-head"><h3>Conversion History</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th><th>Source Item</th><th class="num">Source Qty</th><th>Destination Items Produced</th><th>Notes</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="conversionHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ REPORTS VIEW ============ -->
+      <div class="view" id="view-reports">
+        <div class="tab-bar">
+          <button class="tab-btn active" id="tabBtnSales" onclick="switchReportTab('sales')">Sales Report</button>
+          <button class="tab-btn" id="tabBtnPurchase" onclick="switchReportTab('purchase')">Purchase Report</button>
+        </div>
+
+        <!-- SALES REPORT CONTAINER -->
+        <div id="reportSalesContainer">
+          <div class="filter-bar">
+            <div class="field">
+              <label>From</label>
+              <input type="date" id="repFrom">
+            </div>
+            <div class="field">
+              <label>To</label>
+              <input type="date" id="repTo">
+            </div>
+            <div class="quick-btns">
+              <button class="btn btn-sm" onclick="setRange('today')">Today</button>
+              <button class="btn btn-sm" onclick="setRange('week')">This Week</button>
+              <button class="btn btn-sm" onclick="setRange('month')">This Month</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="renderReports()">Apply</button>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-card"><div class="label">Total Sales</div><div class="value accent" id="repTotalSales">0.00</div></div>
+            <div class="stat-card"><div class="label">Bills</div><div class="value" id="repBillCount">0</div></div>
+            <div class="stat-card"><div class="label">Items Sold</div><div class="value" id="repItemsSold">0</div></div>
+            <div class="stat-card"><div class="label">Avg. Bill Value</div><div class="value" id="repAvgBill">0.00</div></div>
+          </div>
+
+          <div class="card" style="margin-bottom:18px;">
+            <div class="panel-head"><h3>Daily Sales</h3></div>
+            <div class="panel-body">
+              <div class="bar-chart" id="dailyBarChart"></div>
+            </div>
+          </div>
+
+          <div class="panel-head"><h3>Top Items</h3></div>
+            <div style="padding:14px;">
+              <div style="display:flex;gap:10px;margin-bottom:10px;font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;">
+                <div style="flex:1;">Item</div>
+                <div style="width:120px;display:flex;align-items:center;justify-content:flex-end;gap:6px;"><span>Qty Sold</span><button class="icon-btn" style="width:24px;height:24px;font-size:12px;padding:0;" id="sortQtySold" onclick="toggleSortTopItems('qty')">↕</button></div>
+                <div style="width:120px;display:flex;align-items:center;justify-content:flex-end;gap:6px;"><span>Revenue</span><button class="icon-btn" style="width:24px;height:24px;font-size:12px;padding:0;" id="sortRevenue" onclick="toggleSortTopItems('rev')">↕</button></div>
+              </div>
+              <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
+                <table style="font-size:12px;">
+                  <tbody id="topItemsBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          <div class="card">
+            <div class="panel-head">
+              <h3>Bills</h3>
+              <button class="btn btn-sm btn-ghost" onclick="exportRangeCSV()">Export CSV</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Bill #</th><th>Date &amp; Time</th><th class="num">Items</th><th class="num">Total</th><th></th></tr></thead>
+                <tbody id="billsBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding:16px;background:var(--paper);border-radius:10px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:var(--text-dim);">Swipe left or click the row to view bill details. Use <button class="btn btn-sm btn-danger" style="display:inline-flex;padding:3px 8px;" onclick="alert('Delete bills from the trash icon')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19 6H5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button> icon to delete.</p>
+          </div>
+        </div>
+
+        <!-- PURCHASE REPORT CONTAINER -->
+        <div id="reportPurchaseContainer" style="display:none;">
+          <div class="filter-bar">
+            <div class="field">
+              <label>From</label>
+              <input type="date" id="purRepFrom">
+            </div>
+            <div class="field">
+              <label>To</label>
+              <input type="date" id="purRepTo">
+            </div>
+            <div class="field" style="flex:1;min-width:200px;">
+              <label>Search</label>
+              <input type="text" id="purRepSearch" placeholder="Search item, supplier, invoice..." oninput="renderPurchaseReport()">
+            </div>
+            <div class="quick-btns">
+              <button class="btn btn-sm" onclick="setPurRange('today')">Today</button>
+              <button class="btn btn-sm" onclick="setPurRange('week')">This Week</button>
+              <button class="btn btn-sm" onclick="setPurRange('month')">This Month</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="renderPurchaseReport()">Apply</button>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-card"><div class="label">Total Purchase Amount</div><div class="value accent" id="purRepTotalAmt">0.00</div></div>
+            <div class="stat-card"><div class="label">Total Purchases</div><div class="value" id="purRepCount">0</div></div>
+            <div class="stat-card"><div class="label">Total Qty Purchased</div><div class="value" id="purRepTotalQty">0</div></div>
+          </div>
+
+          <div class="card">
+            <div class="panel-head">
+              <h3>Purchase Entries</h3>
+              <button class="btn btn-sm btn-ghost" onclick="exportPurchaseCSV()">Export CSV</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Purchase Date</th><th>Supplier</th><th>Invoice #</th><th>Item</th><th class="num">Quantity</th><th class="num">Purchase Price</th><th class="num">Total Price</th><th>Notes</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="purRepBody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -675,18 +932,24 @@
             <option>plate</option><option>set</option><option>ton</option><option>other</option>
           </select>
         </div>
-        <div class="field full" style="display:none;">
+        <div class="field full">
           <label>Category (optional)</label>
           <input type="text" id="itemCategory" list="categoryList" placeholder="e.g. Grocery, Electrical, Hotel">
           <datalist id="categoryList"></datalist>
         </div>
         <div class="field full">
           <label>Photo (optional)</label>
-          <div class="img-drop" id="imgDrop" onclick="document.getElementById('itemImageFile').click()">
+          <div style="display:flex;gap:10px;margin-bottom:8px;">
+            <button type="button" class="btn btn-sm" onclick="triggerCameraInput('itemCameraFile')">📷 Take Photo</button>
+            <button type="button" class="btn btn-sm" onclick="triggerGalleryInput('itemGalleryFile')">🖼 Choose from Gallery</button>
+          </div>
+          <input type="file" id="itemCameraFile" accept="image/*" capture="environment" style="display:none;" onchange="handleImageSelect(event)">
+          <input type="file" id="itemGalleryFile" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+          
+          <div class="img-drop" id="imgDrop" onclick="triggerGalleryInput('itemGalleryFile')">
             <img id="imgPreview" style="display:none;">
             <svg id="imgPlaceholderIcon" width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="10" r="1.5" fill="currentColor"/><path d="M21 16l-5.5-5.5L9 17" stroke="currentColor" stroke-width="1.6"/></svg>
-            <span id="imgDropText">Click to upload image</span>
-            <input type="file" id="itemImageFile" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+            <span id="imgDropText">Click to choose image or use buttons above</span>
           </div>
         </div>
       </div>
@@ -699,6 +962,162 @@
   </div>
 </div>
 
+<!-- PURCHASE MODAL -->
+<div class="overlay" id="purchaseModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="purchaseModalTitle">Add Purchase Entry</h3>
+      <button class="icon-btn" onclick="closePurchaseModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Item Selection *</label>
+          <div style="display:flex;gap:8px;">
+            <select id="purItemSelect" style="flex:1;" onchange="handlePurItemChange()">
+              <option value="">-- Select Existing Item --</option>
+            </select>
+            <button class="btn btn-sm" type="button" onclick="openInlineItemCreate()">+ Create New</button>
+          </div>
+        </div>
+        <div class="field"><label>Purchase Quantity *</label><input type="number" id="purQty" min="0.01" step="0.01" placeholder="0"></div>
+        <div class="field"><label>Purchase Price per Unit</label><input type="number" id="purPrice" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label>Supplier Name</label><input type="text" id="purSupplier" placeholder="Supplier / Vendor"></div>
+        <div class="field"><label>Invoice Number</label><input type="text" id="purInvoice" placeholder="Inv-1002"></div>
+        <div class="field"><label>Purchase Date *</label><input type="date" id="purDate"></div>
+        <div class="field full"><label>Notes</label><input type="text" id="purNotes" placeholder="Optional notes"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closePurchaseModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePurchase()">Save Purchase</button>
+    </div>
+  </div>
+</div>
+
+<!-- INLINE NEW ITEM MODAL FOR PURCHASE -->
+<div class="overlay" id="inlineItemModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Create New Item Master</h3>
+      <button class="icon-btn" onclick="closeInlineItemModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field full"><label>Item Name *</label><input type="text" id="inlineItemName"></div>
+        <div class="field"><label>Selling Price *</label><input type="number" id="inlineItemPrice" min="0" step="0.01"></div>
+        <div class="field"><label>Unit</label><select id="inlineItemUnit" class="unit-select"><option>pcs</option><option>kg</option><option>g</option><option>ltr</option><option>ml</option><option>bag</option><option>box</option><option>dozen</option><option>plate</option><option>set</option><option>ton</option><option>other</option></select></div>
+        <div class="field full"><label>Category</label><input type="text" id="inlineItemCategory"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeInlineItemModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInlineItem()">Create Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- STOCK ADJUSTMENT MODAL -->
+<div class="overlay" id="stockAdjustModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="adjustModalTitle">Adjust Stock</h3>
+      <button class="icon-btn" onclick="closeAdjustModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="adjustItemId">
+      <input type="hidden" id="adjustType">
+      <div class="field full" style="margin-bottom:12px;">
+        <label id="adjustItemLabel" style="font-size:14px;font-weight:700;"></label>
+      </div>
+      <div class="form-grid">
+        <div class="field full"><label>Quantity *</label><input type="number" id="adjustQty" min="0.01" step="0.01" placeholder="0"></div>
+        <div class="field full"><label>Reason / Notes</label><input type="text" id="adjustNotes" placeholder="Reason for adjustment"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeAdjustModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStockAdjustment()">Confirm Adjustment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ITEM STOCK AUDIT TRAIL MODAL -->
+<div class="overlay" id="itemStockHistoryModalOverlay">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-head">
+      <h3 id="itemStockHistoryTitle">Item Stock Audit History</h3>
+      <button class="icon-btn" onclick="closeItemStockHistoryModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding:14px;">
+      <div class="table-wrap" style="max-height:420px;overflow-y:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date &amp; Time</th><th>Action</th><th class="num">Prev</th><th class="num">Change</th><th class="num">New</th><th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="itemStockHistoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeItemStockHistoryModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONVERSION MODAL -->
+<div class="overlay" id="conversionModalOverlay">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-head">
+      <h3>Stock Conversion (Loose Breakdown)</h3>
+      <button class="icon-btn" onclick="closeConversionModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">Source Item (Deduct)</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Source Item *</label>
+          <select id="convSourceItem" onchange="updateSourceStockDisplay()"><option value="">-- Select Source Item --</option></select>
+        </div>
+        <div class="field">
+          <label>Source Qty to Convert *</label>
+          <input type="number" id="convSourceQty" min="0.01" step="0.01" placeholder="1">
+          <small id="sourceStockDisplay" style="color:var(--text-dim);"></small>
+        </div>
+      </div>
+
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Destination Items (Produce)</span>
+        <button class="btn btn-sm" type="button" onclick="addConversionDestRow()">+ Add Destination Item</button>
+      </div>
+      <div id="convDestContainer"></div>
+
+      <div class="field full" style="margin-top:12px;"><label>Conversion Notes</label><input type="text" id="convNotes" placeholder="e.g. Broke 1x50kg bag into 10x5kg packs"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeConversionModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="executeConversion()">Process Conversion</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSUFFICIENT STOCK WARNING MODAL -->
+<div class="overlay" id="stockWarningModalOverlay">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <div class="modal-body" style="padding:28px 20px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="margin:0 auto 12px;display:block;"><path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"/></svg>
+      <h3 style="margin:0 0 8px;font-size:17px;">Insufficient Stock Available</h3>
+      <p id="stockWarningText" style="font-size:13px;color:var(--text-dim);margin:0 0 20px;"></p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn" onclick="closeStockWarningModal()">Close</button>
+        <button class="btn btn-primary" onclick="closeStockWarningModal(); showView('stock');">Go to Stock Management</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- PRINT AREA -->
 <div id="printArea"></div>
 
@@ -706,20 +1125,23 @@
 
 <script>
 /* ============================================================
-   LEDGER POS — single-file billing app. localStorage only.
-   Keys: lp_shop, lp_items, lp_bills, lp_billseq, lp_cart, lp_discount
+   LEDGER POS — single-file billing & inventory app.
+   Keys: lp_shop, lp_items, lp_bills, lp_billseq, lp_cart,
+         lp_purchases, lp_adjustments, lp_conversions
    ============================================================ */
 
 const LS = {
-  shop:'lp_shop', items:'lp_items', bills:'lp_bills', seq:'lp_billseq', cart:'lp_cart'
+  shop:'lp_shop', items:'lp_items', bills:'lp_bills', seq:'lp_billseq', cart:'lp_cart',
+  purchases:'lp_purchases', adjustments:'lp_adjustments', conversions:'lp_conversions'
 };
+
+const LOW_STOCK_THRESHOLD = 5;
 
 function loadJSON(key, fallback){
   try{
     const v = localStorage.getItem(key);
     return v ? JSON.parse(v) : fallback;
   }catch(e){ return fallback; }
-
 }
 function saveJSON(key, val){
   localStorage.setItem(key, JSON.stringify(val));
@@ -731,8 +1153,40 @@ let shop = loadJSON(LS.shop, {
 });
 let items = loadJSON(LS.items, []);
 let bills = loadJSON(LS.bills, []);
-let cart = loadJSON(LS.cart, []); // [{id,name,price,unit,qty}]
+let cart = loadJSON(LS.cart, []);
+let purchases = loadJSON(LS.purchases, []);
+let adjustments = loadJSON(LS.adjustments, []);
+let conversions = loadJSON(LS.conversions, []);
 let activeCategory = 'all';
+let activeReportTab = 'sales';
+
+/* ---------------- Stock Migration & Helpers ---------------- */
+function getItemStock(item) {
+  return typeof item.stock === 'number' ? item.stock : 0;
+}
+
+function adjustItemStock(itemId, delta) {
+  const item = items.find(i => i.id === itemId);
+  if (!item) return;
+  item.stock = Math.round(((item.stock || 0) + delta) * 100) / 100;
+  item.lastUpdated = new Date().toISOString();
+  saveJSON(LS.items, items);
+}
+
+function getItemStockDisplay(stock) {
+  if (stock <= 0) return { text: 'OUT OF STOCK', class: 'red' };
+  if (stock <= LOW_STOCK_THRESHOLD) return { text: `Stock: ${stock}`, class: 'red' };
+  if (stock <= 99) return { text: `Stock: ${stock}`, class: 'green' };
+  return { text: 'Stock: 99+', class: 'green' };
+}
+
+function showStockWarning(msg) {
+  document.getElementById('stockWarningText').textContent = msg;
+  document.getElementById('stockWarningModalOverlay').classList.add('active');
+}
+function closeStockWarningModal() {
+  document.getElementById('stockWarningModalOverlay').classList.remove('active');
+}
 
 /* ---------------- Utilities ---------------- */
 function uid(){ return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -746,13 +1200,29 @@ function showToast(msg){
   showToast._tm = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 function fmtDate(d){
+  if(!d) return '—';
   const dt = new Date(d);
+  if(isNaN(dt.getTime())) return d;
   return dt.toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
          dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDateOnly(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt.getTime())) return d;
+  return dt.toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'});
 }
 function todayStr(){
   const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+/* ---------------- Camera / Gallery Trigger Helpers ---------------- */
+function triggerCameraInput(inputId) {
+  document.getElementById(inputId).click();
+}
+function triggerGalleryInput(inputId) {
+  document.getElementById(inputId).click();
 }
 
 /* ---------------- Navigation ---------------- */
@@ -760,11 +1230,19 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
-  const titles = {billing:'Billing', items:'Item Catalog', reports:'Reports', settings:'Settings'};
-  const metas = {billing:'New bill', items:'Manage products &amp; pricing', reports:'Sales summary by date range', settings:'Shop configuration &amp; data'};
-  document.getElementById('topbarTitle').textContent = titles[name];
-  document.getElementById('topbarMeta').innerHTML = metas[name];
+  
+  const titles = { billing:'Billing', items:'Item Catalog', purchase:'Purchase Registry', stock:'Stock Dashboard', reports:'Reports', settings:'Settings' };
+  const metas = {
+    billing:'New bill', items:'Manage products &amp; pricing', purchase:'Record stock intake from purchases',
+    stock:'Real-time inventory analytics &amp; control', reports:'Sales summary &amp; purchase analytics', settings:'Shop configuration &amp; data'
+  };
+  
+  document.getElementById('topbarTitle').textContent = titles[name] || 'Billing';
+  document.getElementById('topbarMeta').innerHTML = metas[name] || '';
+
   if(name==='items') renderItemsTable();
+  if(name==='purchase') renderPurchaseTable();
+  if(name==='stock') renderStockDashboard();
   if(name==='reports') renderReports();
   if(name==='settings') loadSettingsForm();
   if(name==='billing') renderItemGrid();
@@ -786,7 +1264,6 @@ function refreshShopHeader(){
   if(shop.gst) metaText += (metaText ? ' | ' : '') + 'GST: '+shop.gst;
   document.getElementById('receiptShopMeta').textContent = metaText;
   
-  // Update receipt logo
   const logoEl = document.getElementById('receiptLogo');
   if(shop.logo){
     logoEl.innerHTML = '<img src="'+shop.logo+'" style="width:50px;height:50px;border-radius:4px;object-fit:cover;">';
@@ -794,7 +1271,6 @@ function refreshShopHeader(){
     logoEl.innerHTML = '';
   }
   
-  // Update sidebar logo
   const sidebarLogoContainer = document.getElementById('sidebarLogoContainer');
   if(shop.logo){
     sidebarLogoContainer.innerHTML = '<img src="'+shop.logo+'" style="width:100%;height:100%;border-radius:6px;object-fit:cover;">';
@@ -838,7 +1314,7 @@ function openItemModal(id){
     document.getElementById('itemCategory').value='';
     document.getElementById('imgPreview').style.display='none';
     document.getElementById('imgPlaceholderIcon').style.display='block';
-    document.getElementById('imgDropText').textContent = 'Click to upload image';
+    document.getElementById('imgDropText').textContent = 'Click to choose image or use buttons above';
   }
   populateCategoryDatalist();
   document.getElementById('itemModalOverlay').classList.add('active');
@@ -858,7 +1334,6 @@ function handleImageSelect(e){
   reader.onload = function(ev){
     const img = new Image();
     img.onload = function(){
-      // resize/compress to keep localStorage light
       const maxDim = 300;
       let w = img.width, h = img.height;
       if(w > h && w > maxDim){ h = h*(maxDim/w); w = maxDim; }
@@ -885,7 +1360,6 @@ function handleLogoSelect(e){
   reader.onload = function(ev){
     const img = new Image();
     img.onload = function(){
-      // resize/compress to keep localStorage light
       const maxDim = 150;
       let w = img.width, h = img.height;
       if(w > h && w > maxDim){ h = h*(maxDim/w); w = maxDim; }
@@ -917,9 +1391,10 @@ function saveItem(){
 
   if(id){
     const it = items.find(i=>i.id===id);
-    it.name=name; it.price=price; it.unit=unit; it.category=category; it.image=pendingImage||null;
+    it.name=name; it.price=price; it.unit=unit; it.category=category; it.image=pendingImage||it.image||null;
+    it.lastUpdated = new Date().toISOString();
   }else{
-    items.push({id:uid(), name, price, unit, category, image:pendingImage||null});
+    items.push({id:uid(), name, price, unit, category, stock: 0, image:pendingImage||null, lastUpdated: new Date().toISOString()});
   }
   saveJSON(LS.items, items);
   closeItemModal();
@@ -949,20 +1424,24 @@ function renderItemsTable(){
     return;
   }
   emptyBox.style.display='none';
-  body.innerHTML = items.map(it=>`
-    <tr>
+  body.innerHTML = items.map(it=>{
+    const stock = getItemStock(it);
+    const isLow = stock <= LOW_STOCK_THRESHOLD;
+    return `
+    <tr class="${isLow ? 'low-stock' : ''}">
       <td>${it.image ? `<img src="${it.image}" class="row-thumb">` : `<div class="row-thumb" style="display:flex;align-items:center;justify-content:center;color:#b7c0d1;">—</div>`}</td>
-      <td><strong>${escapeHtml(it.name)}</strong></td>
+      <td><strong>${escapeHtml(it.name)}</strong> ${stock <= LOW_STOCK_THRESHOLD && stock > 0 ? '⚠️' : ''} ${stock <= 0 ? '❌' : ''}</td>
       <td>${it.category ? `<span class="badge">${escapeHtml(it.category)}</span>` : '<span style="color:var(--text-dim);">—</span>'}</td>
       <td class="num">${cur()}${money(it.price)}</td>
       <td>${escapeHtml(it.unit||'pcs')}</td>
+      <td class="num" style="font-weight:700;color:${stock <= LOW_STOCK_THRESHOLD ? 'var(--danger)' : 'inherit'};">${stock}</td>
       <td style="text-align:right;">
         <button class="icon-btn" onclick="openItemModal('${it.id}')" title="Edit">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 function emptyStateHTML(icon, title, desc, onclickJS, btnLabel){
@@ -970,8 +1449,556 @@ function emptyStateHTML(icon, title, desc, onclickJS, btnLabel){
     <svg width="42" height="42" viewBox="0 0 24 24" fill="none" style="opacity:.3;"><rect x="3" y="7" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.6"/></svg>
     <h4>${title}</h4>
     <p>${desc}</p>
-    <button class="btn btn-primary" onclick="${onclickJS}">${btnLabel}</button>
+    ${onclickJS ? `<button class="btn btn-primary" onclick="${onclickJS}">${btnLabel}</button>` : ''}
   </div>`;
+}
+
+/* =========================================================
+   PURCHASE MODULE
+   ========================================================= */
+function openPurchaseModal(preselectedItemId){
+  document.getElementById('purQty').value = '';
+  document.getElementById('purPrice').value = '';
+  document.getElementById('purSupplier').value = '';
+  document.getElementById('purInvoice').value = '';
+  document.getElementById('purNotes').value = '';
+  document.getElementById('purDate').value = todayStr();
+  
+  const select = document.getElementById('purItemSelect');
+  select.innerHTML = '<option value="">-- Select Existing Item --</option>' + 
+    items.map(i=>`<option value="${i.id}">${escapeHtml(i.name)} (${i.unit||'pcs'})</option>`).join('');
+
+  if(preselectedItemId){
+    select.value = preselectedItemId;
+    handlePurItemChange();
+  }
+
+  document.getElementById('purchaseModalOverlay').classList.add('active');
+}
+function closePurchaseModal(){ document.getElementById('purchaseModalOverlay').classList.remove('active'); }
+
+function handlePurItemChange(){
+  const itemId = document.getElementById('purItemSelect').value;
+  const it = items.find(i=>i.id===itemId);
+  if(it) document.getElementById('purPrice').value = it.price;
+}
+
+function openInlineItemCreate(){
+  document.getElementById('inlineItemName').value = '';
+  document.getElementById('inlineItemPrice').value = '';
+  document.getElementById('inlineItemUnit').value = 'pcs';
+  document.getElementById('inlineItemCategory').value = '';
+  document.getElementById('inlineItemModalOverlay').classList.add('active'); 
+}
+function closeInlineItemModal(){ document.getElementById('inlineItemModalOverlay').classList.remove('active'); }
+
+function saveInlineItem(){
+  const name = document.getElementById('inlineItemName').value.trim();
+  const price = parseFloat(document.getElementById('inlineItemPrice').value) || 0;
+  const unit = document.getElementById('inlineItemUnit').value;
+  const category = document.getElementById('inlineItemCategory').value.trim();
+
+  if(!name){ showToast('Enter item name'); return; }
+  const newItem = { id: uid(), name, price, unit, category, stock: 0, image: null, lastUpdated: new Date().toISOString() };
+  items.push(newItem);
+  saveJSON(LS.items, items);
+  closeInlineItemModal();
+  
+  openPurchaseModal(newItem.id);
+  showToast('New item added to Master');
+}
+
+function savePurchase(){
+  const itemId = document.getElementById('purItemSelect').value;
+  const qty = parseFloat(document.getElementById('purQty').value);
+  const price = parseFloat(document.getElementById('purPrice').value) || 0;
+  const supplier = document.getElementById('purSupplier').value.trim();
+  const invoice = document.getElementById('purInvoice').value.trim();
+  const date = document.getElementById('purDate').value || todayStr();
+  const notes = document.getElementById('purNotes').value.trim();
+
+  if(!itemId){ showToast('Please select an item'); return; }
+  if(isNaN(qty) || qty <= 0){ showToast('Please enter a valid quantity'); return; }
+
+  const it = items.find(i=>i.id===itemId);
+  const rec = { id: uid(), date, itemId, itemName: it.name, qty, price, supplier, invoice, notes };
+  purchases.push(rec);
+  saveJSON(LS.purchases, purchases);
+
+  adjustItemStock(itemId, qty);
+
+  closePurchaseModal();
+  renderPurchaseTable();
+  showToast('Purchase recorded and stock updated');
+}
+
+function deletePurchase(id){
+  if(!confirm('Delete purchase entry? Stock will be rolled back.')) return;
+  const p = purchases.find(x=>x.id===id);
+  if(p){
+    adjustItemStock(p.itemId, -p.qty);
+  }
+  purchases = purchases.filter(x=>x.id!==id);
+  saveJSON(LS.purchases, purchases);
+  renderPurchaseTable();
+  if(activeReportTab === 'purchase') renderPurchaseReport();
+  showToast('Purchase deleted');
+}
+
+function renderPurchaseTable(){
+  const body = document.getElementById('purchaseTableBody');
+  const empty = document.getElementById('purchaseEmpty');
+  if(purchases.length===0){
+    body.innerHTML='';
+    empty.style.display='block';
+    empty.innerHTML = emptyStateHTML('box','No purchases recorded','Click Add Purchase Entry to record inventory coming in.','openPurchaseModal()','Add Purchase Entry');
+    return;
+  }
+  empty.style.display='none';
+  body.innerHTML = purchases.slice().reverse().map(p=>{
+    const totalPrice = p.qty * (p.price || 0);
+    return `
+    <tr>
+      <td>${p.date}</td>
+      <td><strong>${escapeHtml(p.itemName)}</strong></td>
+      <td>${escapeHtml(p.supplier||'—')}</td>
+      <td>${escapeHtml(p.invoice||'—')}</td>
+      <td class="num">${p.qty}</td>
+      <td class="num">${cur()}${money(p.price)}</td>
+      <td class="num" style="font-weight:700;">${cur()}${money(totalPrice)}</td>
+      <td>${escapeHtml(p.notes||'—')}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-sm btn-danger" onclick="deletePurchase('${p.id}')">Delete</button>
+      </td>
+    </tr>
+  `;}).join('');
+}
+
+/* =========================================================
+   STOCK DASHBOARD & MANAGEMENT MODULE
+   ========================================================= */
+function openAdjustModal(itemId, type){
+  const it = items.find(i=>i.id===itemId);
+  if(!it) return;
+  document.getElementById('adjustItemId').value = itemId;
+  document.getElementById('adjustType').value = type;
+  document.getElementById('adjustModalTitle').textContent = type === 'add' ? 'Increase Stock' : 'Reduce Stock';
+  document.getElementById('adjustItemLabel').textContent = `${it.name} (Current Stock: ${getItemStock(it)} ${it.unit||'pcs'})`;
+  document.getElementById('adjustQty').value = '';
+  document.getElementById('adjustNotes').value = '';
+  document.getElementById('stockAdjustModalOverlay').classList.add('active');
+}
+function closeAdjustModal(){ document.getElementById('stockAdjustModalOverlay').classList.remove('active'); }
+
+function saveStockAdjustment(){
+  const itemId = document.getElementById('adjustItemId').value;
+  const type = document.getElementById('adjustType').value;
+  const qty = parseFloat(document.getElementById('adjustQty').value);
+  const notes = document.getElementById('adjustNotes').value.trim();
+
+  if(isNaN(qty) || qty <= 0){ showToast('Enter a valid quantity'); return; }
+  const delta = type === 'add' ? qty : -qty;
+
+  const it = items.find(i=>i.id===itemId);
+  if(!it) return;
+  const prevStock = getItemStock(it);
+
+  if(type==='reduce' && prevStock < qty){
+    showToast('Cannot reduce below 0 stock');
+    return;
+  }
+
+  adjustItemStock(itemId, delta);
+  const newStock = getItemStock(it);
+
+  adjustments.push({ 
+    id: uid(), 
+    dateTime: new Date().toISOString(), 
+    itemId, 
+    itemName: it.name, 
+    type: type === 'add' ? 'Increase' : 'Reduce', 
+    delta: qty, 
+    prevStock, 
+    newStock, 
+    notes 
+  });
+  saveJSON(LS.adjustments, adjustments);
+
+  closeAdjustModal();
+  renderStockDashboard();
+  showToast('Stock adjusted');
+}
+
+function getLastPurchaseDate(itemId) {
+  const pList = purchases.filter(p => p.itemId === itemId).sort((a,b) => new Date(b.date) - new Date(a.date));
+  return pList.length ? pList[0].date : null;
+}
+
+function getItemMovements(itemId) {
+  let purchased = 0, sold = 0, convIn = 0, convOut = 0;
+
+  purchases.forEach(p => { if(p.itemId === itemId) purchased += Number(p.qty); });
+  bills.forEach(b => {
+    b.items.forEach(it => { if(it.id === itemId) sold += Number(it.qty); });
+  });
+  conversions.forEach(c => {
+    if(c.sourceItemId === itemId) convOut += Number(c.sourceQty);
+    c.destItems.forEach(d => { if(d.itemId === itemId) convIn += Number(d.qty); });
+  });
+
+  return { purchased, sold, convIn, convOut };
+}
+
+function renderStockDashboard() {
+  // 1. Calculate Top Dashboard Stats
+  const totalProducts = items.length;
+  const totalUnits = items.reduce((s, i) => s + getItemStock(i), 0);
+  const lowStockItems = items.filter(i => getItemStock(i) <= LOW_STOCK_THRESHOLD && getItemStock(i) > 0);
+  const outOfStockItems = items.filter(i => getItemStock(i) <= 0);
+
+  const tStr = todayStr();
+  const restockedTodayCount = new Set(
+    purchases.filter(p => p.date === tStr).map(p => p.itemId)
+  ).size;
+
+  document.getElementById('stkTotalProducts').textContent = totalProducts;
+  document.getElementById('stkTotalUnits').textContent = Math.round(totalUnits * 100) / 100;
+  document.getElementById('stkLowStockCount').textContent = lowStockItems.length;
+  document.getElementById('stkOutStockCount').textContent = outOfStockItems.length;
+  document.getElementById('stkRestockedToday').textContent = restockedTodayCount;
+
+  // 2. Render Low Stock Section
+  const lowBody = document.getElementById('lowStockTableBody');
+  if (lowStockItems.length === 0) {
+    lowBody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:18px;color:var(--accent-dark);font-weight:600;">✅ Great! No low stock items.</td></tr>`;
+  } else {
+    lowBody.innerHTML = lowStockItems.map(it => {
+      const stock = getItemStock(it);
+      const lastP = getLastPurchaseDate(it.id);
+      return `
+        <tr>
+          <td>${it.image ? `<img src="${it.image}" class="row-thumb">` : `<div class="row-thumb" style="display:flex;align-items:center;justify-content:center;">—</div>`}</td>
+          <td><strong>${escapeHtml(it.name)}</strong> ⚠️</td>
+          <td>${it.category ? `<span class="badge">${escapeHtml(it.category)}</span>` : '—'}</td>
+          <td class="num" style="font-weight:800;color:var(--amber);">${stock}</td>
+          <td class="num">${LOW_STOCK_THRESHOLD}</td>
+          <td><span class="stock-badge low">Low Stock (&le;5)</span></td>
+          <td>${fmtDateOnly(lastP)}</td>
+          <td><button class="btn btn-sm btn-amber" onclick="quickRestock('${it.id}')">Restock</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 3. Render Out of Stock Section
+  const outBody = document.getElementById('outOfStockTableBody');
+  if (outOfStockItems.length === 0) {
+    outBody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--accent-dark);font-weight:600;">🎉 All products are currently available.</td></tr>`;
+  } else {
+    outBody.innerHTML = outOfStockItems.map(it => {
+      const lastP = getLastPurchaseDate(it.id);
+      return `
+        <tr>
+          <td>${it.image ? `<img src="${it.image}" class="row-thumb">` : `<div class="row-thumb" style="display:flex;align-items:center;justify-content:center;">—</div>`}</td>
+          <td><strong>${escapeHtml(it.name)}</strong> ❌</td>
+          <td>${it.category ? `<span class="badge">${escapeHtml(it.category)}</span>` : '—'}</td>
+          <td><span class="stock-badge out">OUT OF STOCK</span></td>
+          <td>${fmtDateOnly(lastP)}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="quickRestock('${it.id}')">Restock</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 4. Render Main Inventory Master Table with Filtering & Sorting
+  renderStockTable();
+
+  // 5. Audit logs
+  renderAdjustmentHistory();
+  renderConversionHistory();
+}
+
+function quickRestock(itemId) {
+  showView('purchase');
+  openPurchaseModal(itemId);
+}
+
+function renderStockTable(){
+  const searchQ = (document.getElementById('stkSearchInput').value || '').trim().toLowerCase();
+  const filterV = document.getElementById('stkFilterSelect').value;
+  const sortV = document.getElementById('stkSortSelect').value;
+
+  let list = items.filter(it => {
+    const stock = getItemStock(it);
+    const matchQ = !searchQ || it.name.toLowerCase().includes(searchQ) || (it.category || '').toLowerCase().includes(searchQ);
+    
+    if(!matchQ) return false;
+    if(filterV === 'in') return stock > LOW_STOCK_THRESHOLD;
+    if(filterV === 'low') return stock <= LOW_STOCK_THRESHOLD && stock > 0;
+    if(filterV === 'out') return stock <= 0;
+    if(filterV === 'recent') {
+      const lu = new Date(it.lastUpdated || 0);
+      const diffHours = (new Date() - lu) / (1000 * 60 * 60);
+      return diffHours <= 48; // Updated in last 48 hours
+    }
+    return true;
+  });
+
+  // Sorting Logic
+  list.sort((a,b) => {
+    const stockA = getItemStock(a);
+    const stockB = getItemStock(b);
+    if(sortV === 'stock_asc') return stockA - stockB;
+    if(sortV === 'stock_desc') return stockB - stockA;
+    if(sortV === 'updated') return new Date(b.lastUpdated || 0) - new Date(a.lastUpdated || 0);
+    return a.name.localeCompare(b.name);
+  });
+
+  const body = document.getElementById('stockTableBody');
+  if(list.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px;">No matching inventory records found</td></tr>';
+    return;
+  }
+
+  body.innerHTML = list.map(it => {
+    const stock = getItemStock(it);
+    const m = getItemMovements(it.id);
+
+    let badge = `<span class="stock-badge ok">In Stock</span>`;
+    if(stock <= 0) badge = `<span class="stock-badge out">OUT OF STOCK</span>`;
+    else if(stock <= LOW_STOCK_THRESHOLD) badge = `<span class="stock-badge critical">Low Stock (&le;5)</span>`;
+
+    return `
+      <tr class="${stock <= LOW_STOCK_THRESHOLD ? 'low-stock' : ''}">
+        <td><strong>${escapeHtml(it.name)}</strong> ${stock <= LOW_STOCK_THRESHOLD && stock > 0 ? '⚠️' : ''} ${stock <= 0 ? '❌' : ''}</td>
+        <td>${escapeHtml(it.category||'—')}</td>
+        <td class="num" style="font-weight:700;">${stock}</td>
+        <td>${escapeHtml(it.unit||'pcs')}</td>
+        <td>${badge}</td>
+        <td style="font-size:11px;color:var(--text-dim);">
+          <span class="m-pill in" title="Purchased">+${m.purchased}</span> 
+          <span class="m-pill out" title="Sold">-${m.sold}</span>
+        </td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn btn-sm" onclick="openAdjustModal('${it.id}', 'add')" title="Increase Stock">+</button>
+          <button class="btn btn-sm" onclick="openAdjustModal('${it.id}', 'reduce')" title="Reduce Stock">−</button>
+          <button class="btn btn-sm btn-ghost" onclick="quickRestock('${it.id}')" title="Purchase Restock">📦</button>
+          <button class="btn btn-sm btn-ghost" onclick="openItemStockHistoryModal('${it.id}')" title="View Audit Trail">📋</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* Item Specific Stock Audit Trail Modal */
+function openItemStockHistoryModal(itemId) {
+  const it = items.find(i => i.id === itemId);
+  if (!it) return;
+
+  document.getElementById('itemStockHistoryTitle').textContent = `Stock Audit Log — ${it.name}`;
+  
+  // Combine all movements into a single unified log
+  let logs = [];
+
+  purchases.filter(p => p.itemId === itemId).forEach(p => {
+    logs.push({ date: p.date, action: 'Purchase Intake', change: `+${p.qty}`, notes: `Inv #${p.invoice || '—'} / ${p.supplier || 'Vendor'}` });
+  });
+
+  adjustments.filter(a => a.itemId === itemId).forEach(a => {
+    logs.push({ date: a.dateTime || a.date, action: `Manual ${a.type}`, change: a.type === 'Increase' ? `+${a.delta}` : `-${a.delta}`, prev: a.prevStock, new: a.newStock, notes: a.notes || '—' });
+  });
+
+  bills.forEach(b => {
+    b.items.forEach(bi => {
+      if (bi.id === itemId) {
+        logs.push({ date: b.date, action: 'Billing Sale', change: `-${bi.qty}`, notes: `Bill #${b.billNo}` });
+      }
+    });
+  });
+
+  conversions.forEach(c => {
+    if (c.sourceItemId === itemId) {
+      logs.push({ date: c.date, action: 'Conversion Out', change: `-${c.sourceQty}`, notes: `Converted to ${c.destItems.map(d=>d.itemName).join(', ')}` });
+    }
+    c.destItems.forEach(d => {
+      if (d.itemId === itemId) {
+        logs.push({ date: c.date, action: 'Conversion In', change: `+${d.qty}`, notes: `Converted from ${c.sourceItemName}` });
+      }
+    });
+  });
+
+  logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const body = document.getElementById('itemStockHistoryBody');
+  if (logs.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px;">No transaction records found for this item.</td></tr>';
+  } else {
+    body.innerHTML = logs.map(l => `
+      <tr>
+        <td>${fmtDate(l.date)}</td>
+        <td><strong>${escapeHtml(l.action)}</strong></td>
+        <td class="num">${l.prev !== undefined ? l.prev : '—'}</td>
+        <td class="num" style="font-weight:700;color:${l.change.startsWith('+') ? 'var(--accent-dark)' : 'var(--danger)'};">${l.change}</td>
+        <td class="num">${l.new !== undefined ? l.new : '—'}</td>
+        <td style="font-size:11.5px;">${escapeHtml(l.notes)}</td>
+      </tr>
+    `).join('');
+  }
+
+  document.getElementById('itemStockHistoryModalOverlay').classList.add('active');
+}
+function closeItemStockHistoryModal() {
+  document.getElementById('itemStockHistoryModalOverlay').classList.remove('active');
+}
+
+function renderAdjustmentHistory(){
+  const body = document.getElementById('adjustmentHistoryBody');
+  if(adjustments.length===0){
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:16px;">No stock adjustments recorded yet</td></tr>';
+    return;
+  }
+  body.innerHTML = adjustments.slice().reverse().map(a=>`
+    <tr>
+      <td>${fmtDate(a.dateTime || a.date)}</td>
+      <td><strong>${escapeHtml(a.itemName || '—')}</strong></td>
+      <td><span class="badge ${a.type==='Increase'?'':'amber'}">${a.type}</span></td>
+      <td class="num">${a.delta}</td>
+      <td class="num">${a.prevStock !== undefined ? a.prevStock : '—'}</td>
+      <td class="num" style="font-weight:700;">${a.newStock !== undefined ? a.newStock : '—'}</td>
+      <td>${escapeHtml(a.notes||'—')}</td>
+    </tr>
+  `).join('');
+}
+
+/* Loose Conversion System */
+function openConversionModal(){
+  const sourceSel = document.getElementById('convSourceItem');
+  sourceSel.innerHTML = '<option value="">-- Select Source Item --</option>' + 
+    items.map(i=>`<option value="${i.id}">${escapeHtml(i.name)} (${getItemStock(i)} ${i.unit||'pcs'})</option>`).join('');
+  document.getElementById('convSourceQty').value = 1;
+  document.getElementById('convNotes').value = '';
+  document.getElementById('convDestContainer').innerHTML = '';
+  addConversionDestRow();
+  updateSourceStockDisplay();
+  document.getElementById('conversionModalOverlay').classList.add('active');
+}
+function closeConversionModal(){ document.getElementById('conversionModalOverlay').classList.remove('active'); }
+
+function updateSourceStockDisplay(){
+  const id = document.getElementById('convSourceItem').value;
+  const it = items.find(i=>i.id===id);
+  const el = document.getElementById('sourceStockDisplay');
+  el.textContent = it ? `Available Stock: ${getItemStock(it)} ${it.unit||'pcs'}` : '';
+}
+
+function addConversionDestRow(){
+  const container = document.getElementById('convDestContainer');
+  const rowId = uid();
+  const div = document.createElement('div');
+  div.className = 'conv-dest-row';
+  div.id = rowId;
+  div.innerHTML = `
+    <select class="dest-item-sel" style="padding:6px;border-radius:6px;border:1px solid var(--line);">
+      <option value="">-- Existing / Create New --</option>
+      <option value="__NEW__">+ Create New Item Inline</option>
+      ${items.map(i=>`<option value="${i.id}">${escapeHtml(i.name)} (${i.unit||'pcs'})</option>`).join('')}
+    </select>
+    <input type="number" class="dest-qty" placeholder="Qty" min="0.01" step="0.01" style="padding:6px;border-radius:6px;border:1px solid var(--line);">
+    <input type="number" class="dest-price" placeholder="Price" min="0" step="0.01" style="padding:6px;border-radius:6px;border:1px solid var(--line);">
+    <button class="btn btn-sm btn-danger" onclick="document.getElementById('${rowId}').remove()">×</button>
+  `;
+  container.appendChild(div);
+}
+
+function executeConversion(){
+  const sourceId = document.getElementById('convSourceItem').value;
+  const sourceQty = parseFloat(document.getElementById('convSourceQty').value);
+  const notes = document.getElementById('convNotes').value.trim();
+
+  if(!sourceId){ showToast('Select source item'); return; }
+  if(isNaN(sourceQty) || sourceQty <= 0){ showToast('Invalid source quantity'); return; }
+
+  const sourceItem = items.find(i=>i.id===sourceId);
+  if(getItemStock(sourceItem) < sourceQty){
+    showToast('Insufficient source item stock');
+    return;
+  }
+
+  const rows = document.querySelectorAll('.conv-dest-row');
+  if(rows.length === 0){ showToast('Add at least one destination item'); return; }
+
+  let destItems = [];
+  for(let r of rows){
+    let selVal = r.querySelector('.dest-item-sel').value;
+    let qty = parseFloat(r.querySelector('.dest-qty').value);
+    let price = parseFloat(r.querySelector('.dest-price').value) || 0;
+
+    if(!selVal){ showToast('Select or create destination item'); return; }
+    if(isNaN(qty) || qty <= 0){ showToast('Enter valid destination quantity'); return; }
+
+    let destItemId = selVal;
+    if(selVal === '__NEW__'){
+      const name = prompt('Enter new destination item name:');
+      if(!name) return;
+      const unit = prompt('Enter unit (e.g. kg, pcs):', 'pcs') || 'pcs';
+      const newItem = { id: uid(), name, price, unit, category: sourceItem.category||'', stock: 0, lastUpdated: new Date().toISOString() };
+      items.push(newItem);
+      destItemId = newItem.id;
+    }
+    const destIt = items.find(i=>i.id===destItemId);
+    destItems.push({ itemId: destItemId, itemName: destIt.name, qty, price });
+  }
+
+  adjustItemStock(sourceId, -sourceQty);
+
+  destItems.forEach(d=>{
+    adjustItemStock(d.itemId, d.qty);
+  });
+
+  const convRecord = {
+    id: uid(), date: todayStr(), sourceItemId: sourceId, sourceItemName: sourceItem.name,
+    sourceQty, destItems, notes
+  };
+  conversions.push(convRecord);
+  saveJSON(LS.conversions, conversions);
+
+  closeConversionModal();
+  renderStockDashboard();
+  showToast('Conversion completed successfully');
+}
+
+function deleteConversion(id){
+  if(!confirm('Rollback this conversion? Stock changes will be reversed.')) return;
+  const c = conversions.find(x=>x.id===id);
+  if(!c) return;
+
+  adjustItemStock(c.sourceItemId, c.sourceQty);
+  c.destItems.forEach(d=>{
+    adjustItemStock(d.itemId, -d.qty);
+  });
+
+  conversions = conversions.filter(x=>x.id!==id);
+  saveJSON(LS.conversions, conversions);
+  renderStockDashboard();
+  showToast('Conversion rolled back');
+}
+
+function renderConversionHistory(){
+  const body = document.getElementById('conversionHistoryBody');
+  if(conversions.length===0){
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;">No conversions logged yet</td></tr>';
+    return;
+  }
+  body.innerHTML = conversions.slice().reverse().map(c=>`
+    <tr>
+      <td>${c.date}</td>
+      <td><strong>${escapeHtml(c.sourceItemName)}</strong></td>
+      <td class="num">${c.sourceQty}</td>
+      <td>${c.destItems.map(d=>`${d.qty}x ${escapeHtml(d.itemName)}`).join(', ')}</td>
+      <td>${escapeHtml(c.notes||'—')}</td>
+      <td style="text-align:right;"><button class="btn btn-sm btn-danger" onclick="deleteConversion('${c.id}')">Rollback</button></td>
+    </tr>
+  `).join('');
 }
 
 /* =========================================================
@@ -1005,21 +2032,26 @@ function renderItemGrid(){
   }
   gridWrap.innerHTML = `<div class="item-grid">${list.map(it=>{
     const inCart = cart.find(c=>c.id===it.id);
-    const qty = inCart ? Math.round(inCart.qty*100)/100 : 0;
+    const qtyInCart = inCart ? Math.round(inCart.qty*100)/100 : 0;
+    const stock = getItemStock(it);
+    const stockDisp = getItemStockDisplay(stock);
+    const isLow = stock <= LOW_STOCK_THRESHOLD && stock > 0;
+    const isOut = stock <= 0;
+
     return `
-    <div class="item-card">
+    <div class="item-card ${isLow ? 'low-stock' : ''} ${isOut ? 'out-of-stock' : ''}">
       <div class="qty-control">
-        <button class="qc-btn qc-minus" onclick="changeQty('${it.id}', -1)" ${!inCart ? 'disabled' : ''} title="Reduce">−</button>
-        <span class="qc-count">${qty}</span>
-        <button class="qc-btn qc-plus" onclick="addToCart('${it.id}')" title="Add">+</button>
+        <button class="qc-btn qc-minus" onclick="changeQty('${it.id}', -1)" ${!inCart ? 'disabled' : ''}>−</button>
+        <span class="qc-count">${qtyInCart}</span>
+        <button class="qc-btn qc-plus" onclick="addToCart('${it.id}')" ${isOut ? 'disabled' : ''}>+</button>
       </div>
       <div class="item-thumb">
         ${it.image ? `<img src="${it.image}">` : `<svg class="ph" width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5"/></svg>`}
       </div>
       <div class="item-info">
-        <div class="item-name">${escapeHtml(it.name)}</div>
-        ${it.category ? `<div class="item-cat">${escapeHtml(it.category)}</div>` : ''}
-        <div class="item-price">${cur()}${money(it.price)} <span class="item-unit">/ ${escapeHtml(it.unit||'pcs')}</span></div>
+        <div class="item-name">${escapeHtml(it.name)} ${isLow ? '⚠️' : ''} ${isOut ? '❌' : ''}</div>
+        <div class="stock-tag ${stockDisp.class}">${stockDisp.text}</div>
+        <div class="item-price" style="margin-top:4px;">${cur()}${money(it.price)} <span class="item-unit">/ ${escapeHtml(it.unit||'pcs')}</span></div>
       </div>
     </div>`;
   }).join('')}</div>`;
@@ -1028,30 +2060,57 @@ function renderItemGrid(){
 function addToCart(id){
   const it = items.find(i=>i.id===id);
   if(!it) return;
+  const currentStock = getItemStock(it);
   const line = cart.find(c=>c.id===id);
+  const requestedQty = (line ? line.qty : 0) + 1;
+
+  if(requestedQty > currentStock){
+    showStockWarning(`Only ${currentStock} ${it.unit||'pcs'} available for "${it.name}".`);
+    return;
+  }
+
   if(line){ line.qty += 1; }
   else{ cart.push({id:it.id, name:it.name, price:it.price, unit:it.unit, qty:1}); }
   saveJSON(LS.cart, cart);
   renderCart();
   renderItemGrid();
 }
+
 function changeQty(id, delta){
   const line = cart.find(c=>c.id===id);
   if(!line) return;
+  const it = items.find(i=>i.id===id);
+  const currentStock = it ? getItemStock(it) : 0;
+
+  if(delta > 0 && line.qty + delta > currentStock){
+    showStockWarning(`Only ${currentStock} ${it.unit||'pcs'} available for "${it.name}".`);
+    return;
+  }
+
   line.qty = Math.round((line.qty + delta)*100)/100;
   if(line.qty <= 0){ cart = cart.filter(c=>c.id!==id); }
   saveJSON(LS.cart, cart);
   renderCart();
   renderItemGrid();
 }
+
 function setQty(id, val){
   const q = parseFloat(val);
   const line = cart.find(c=>c.id===id);
   if(!line) return;
+  const it = items.find(i=>i.id===id);
+  const currentStock = it ? getItemStock(it) : 0;
+
+  if(!isNaN(q) && q > currentStock){
+    showStockWarning(`Only ${currentStock} ${it.unit||'pcs'} available for "${it.name}".`);
+    renderCart();
+    return;
+  }
+
   if(isNaN(q) || q<=0){ cart = cart.filter(c=>c.id!==id); }
   else{ 
     line.qty = q;
-    line.overrideAmount = null; // Clear override amount when qty is manually changed
+    line.overrideAmount = null;
   }
   saveJSON(LS.cart, cart);
   renderCart();
@@ -1062,22 +2121,34 @@ function setAmount(id, val){
   const amt = parseFloat(val);
   const line = cart.find(c=>c.id===id);
   if(!line) return;
-  if(isNaN(amt) || amt<=0){ cart = cart.filter(c=>c.id!==id); }
-  else{ 
-    // Store exact amount and calculate qty from it
-    line.overrideAmount = Math.round(amt * 100) / 100; // Keep amount precise
-    line.qty = parseFloat((amt / line.price).toFixed(4));
+  const it = items.find(i=>i.id===id);
+  if(!it) return;
+
+  if(!isNaN(amt) && amt > 0){
+    const calcQty = parseFloat((amt / line.price).toFixed(4));
+    const currentStock = getItemStock(it);
+    if(calcQty > currentStock){
+      showStockWarning(`Calculated quantity (${calcQty}) exceeds available stock (${currentStock}).`);
+      renderCart();
+      return;
+    }
+    line.overrideAmount = Math.round(amt * 100) / 100;
+    line.qty = calcQty;
+  }else{
+    cart = cart.filter(c=>c.id!==id);
   }
   saveJSON(LS.cart, cart);
   renderCart();
   renderItemGrid();
 }
+
 function removeLine(id){
   cart = cart.filter(c=>c.id!==id);
   saveJSON(LS.cart, cart);
   renderCart();
   renderItemGrid();
 }
+
 function clearCart(){
   if(cart.length && !confirm('Clear the current bill?')) return;
   cart = [];
@@ -1090,6 +2161,7 @@ function clearCart(){
 function cartSubtotal(){
   return cart.reduce((s,c)=>s + (c.overrideAmount || c.price*c.qty), 0);
 }
+
 function renderCart(){
   const wrap = document.getElementById('cartLines');
   if(cart.length===0){
@@ -1113,7 +2185,6 @@ function renderCart(){
         <div class="rline-amt">${cur()}${money(c.overrideAmount || c.price*c.qty)}</div>
       </div>
     `).join('');
-    // Auto-scroll to end of cart
     setTimeout(()=>{
       const cartLinesEl = document.getElementById('cartLines');
       if(cartLinesEl) cartLinesEl.scrollTop = cartLinesEl.scrollHeight;
@@ -1142,11 +2213,25 @@ function nextBillNo(){
   return seq;
 }
 
+function executeStockDeductionForBill(bill) {
+  bill.items.forEach(it => {
+    adjustItemStock(it.id, -it.qty);
+  });
+}
+
 function checkout(){
   if(cart.length===0){ showToast('Add at least one item to the bill'); return; }
+  for (let c of cart) {
+    const it = items.find(i => i.id === c.id);
+    if (!it || getItemStock(it) < c.qty) {
+      showStockWarning(`Insufficient stock for "${c.name}". Available: ${it ? getItemStock(it) : 0}`);
+      return;
+    }
+  }
   const bill = createBillObject();
   bills.push(bill);
   saveJSON(LS.bills, bills);
+  executeStockDeductionForBill(bill);
   printBill(bill);
   cart = [];
   saveJSON(LS.cart, cart);
@@ -1158,9 +2243,17 @@ function checkout(){
 
 function saveBillOnly(){
   if(cart.length===0){ showToast('Add at least one item to the bill'); return; }
+  for (let c of cart) {
+    const it = items.find(i => i.id === c.id);
+    if (!it || getItemStock(it) < c.qty) {
+      showStockWarning(`Insufficient stock for "${c.name}". Available: ${it ? getItemStock(it) : 0}`);
+      return;
+    }
+  }
   const bill = createBillObject();
   bills.push(bill);
   saveJSON(LS.bills, bills);
+  executeStockDeductionForBill(bill);
   cart = [];
   saveJSON(LS.cart, cart);
   document.getElementById('discountInput').value = 0;
@@ -1226,6 +2319,17 @@ function printBill(bill){
 /* =========================================================
    REPORTS
    ========================================================= */
+function switchReportTab(tab){
+  activeReportTab = tab;
+  document.getElementById('tabBtnSales').classList.toggle('active', tab==='sales');
+  document.getElementById('tabBtnPurchase').classList.toggle('active', tab==='purchase');
+  document.getElementById('reportSalesContainer').style.display = tab==='sales' ? 'block' : 'none';
+  document.getElementById('reportPurchaseContainer').style.display = tab==='purchase' ? 'block' : 'none';
+  
+  if(tab==='sales') renderReports();
+  if(tab==='purchase') renderPurchaseReport();
+}
+
 function setRange(kind){
   const now = new Date();
   let from, to;
@@ -1256,15 +2360,21 @@ function billsInRange(){
 }
 
 let openBillId = null;
-let topItemsSortBy = 'qty'; // 'qty' or 'rev'
-let topItemsSortDir = 'desc'; // 'asc' or 'desc'
+let topItemsSortBy = 'qty';
+let topItemsSortDir = 'desc';
 
 function deleteBill(id){
-  if(!confirm('Are you sure you want to delete this bill? This action cannot be undone.')) return;
+  if(!confirm('Are you sure you want to delete this bill? Item stock will be restored.')) return;
+  const bill = bills.find(b => b.id === id);
+  if (bill) {
+    bill.items.forEach(it => {
+      adjustItemStock(it.id, it.qty);
+    });
+  }
   bills = bills.filter(b=>b.id!==id);
   saveJSON(LS.bills, bills);
   renderReports();
-  showToast('Bill deleted');
+  showToast('Bill deleted and stock restored');
 }
 
 function toggleSortTopItems(sortBy){
@@ -1290,7 +2400,6 @@ function renderReports(){
   document.getElementById('repItemsSold').textContent = Math.round(itemsSold*100)/100;
   document.getElementById('repAvgBill').textContent = cur()+money(list.length? totalSales/list.length : 0);
 
-  // Daily bar chart
   const byDay = {};
   list.forEach(b=>{
     const d = b.date.slice(0,10);
@@ -1309,7 +2418,6 @@ function renderReports(){
     }).join('');
   }
 
-  // Top items
   const itemAgg = {};
   list.forEach(b=>b.items.forEach(it=>{
     if(!itemAgg[it.name]) itemAgg[it.name] = {qty:0, rev:0};
@@ -1317,7 +2425,6 @@ function renderReports(){
     itemAgg[it.name].rev += it.amount;
   }));
   
-  // Sort based on current sort settings
   let topArr = Object.entries(itemAgg);
   if(topItemsSortBy === 'qty'){
     topArr = topArr.sort((a,b)=>topItemsSortDir==='desc'?b[1].qty-a[1].qty:a[1].qty-b[1].qty);
@@ -1326,7 +2433,6 @@ function renderReports(){
   }
   topArr = topArr.slice(0,10);
   
-  // Update sort button displays
   document.getElementById('sortQtySold').textContent = topItemsSortBy==='qty'?(topItemsSortDir==='asc'?'↑':'↓'):'↕';
   document.getElementById('sortRevenue').textContent = topItemsSortBy==='rev'?(topItemsSortDir==='asc'?'↑':'↓'):'↕';
   
@@ -1334,7 +2440,6 @@ function renderReports(){
     <tr><td>${escapeHtml(name)}</td><td class="num" style="text-align:right;padding-right:10px;">${Math.round(v.qty*100)/100}</td><td class="num" style="text-align:right;padding-right:10px;">${cur()}${money(v.rev)}</td></tr>
   `).join('') : `<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px;">No data</td></tr>`;
 
-  // Bills table
   const body = document.getElementById('billsBody');
   if(list.length===0){
     body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px;">No bills in this date range</td></tr>`;
@@ -1365,6 +2470,100 @@ function renderReports(){
     `).join('');
   }
 }
+
+/* Purchase Report Helpers */
+function setPurRange(kind){
+  const now = new Date();
+  let from, to;
+  if(kind==='today'){ from = to = todayStr(); }
+  else if(kind==='week'){
+    const day = now.getDay();
+    const monday = new Date(now); monday.setDate(now.getDate() - ((day+6)%7));
+    from = monday.toISOString().slice(0,10);
+    to = todayStr();
+  }else if(kind==='month'){
+    from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+    to = todayStr();
+  }
+  document.getElementById('purRepFrom').value = from;
+  document.getElementById('purRepTo').value = to;
+  renderPurchaseReport();
+}
+
+function purchasesInRange(){
+  const fromV = document.getElementById('purRepFrom').value;
+  const toV = document.getElementById('purRepTo').value;
+  const q = (document.getElementById('purRepSearch').value || '').trim().toLowerCase();
+
+  return purchases.filter(p=>{
+    const d = p.date;
+    if(fromV && d < fromV) return false;
+    if(toV && d > toV) return false;
+    if(q){
+      const matchItem = (p.itemName||'').toLowerCase().includes(q);
+      const matchSup = (p.supplier||'').toLowerCase().includes(q);
+      const matchInv = (p.invoice||'').toLowerCase().includes(q);
+      if(!matchItem && !matchSup && !matchInv) return false;
+    }
+    return true;
+  }).sort((a,b)=> new Date(b.date) - new Date(a.date));
+}
+
+function renderPurchaseReport(){
+  if(!document.getElementById('purRepFrom').value){
+    document.getElementById('purRepFrom').value = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
+    document.getElementById('purRepTo').value = todayStr();
+  }
+
+  const list = purchasesInRange();
+  const totalAmt = list.reduce((s,p)=> s + (p.qty * (p.price || 0)), 0);
+  const totalQty = list.reduce((s,p)=> s + Number(p.qty), 0);
+
+  document.getElementById('purRepTotalAmt').textContent = cur() + money(totalAmt);
+  document.getElementById('purRepCount').textContent = list.length;
+  document.getElementById('purRepTotalQty').textContent = Math.round(totalQty * 100) / 100;
+
+  const body = document.getElementById('purRepBody');
+  if(list.length === 0){
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:24px;">No purchase entries found</td></tr>';
+    return;
+  }
+
+  body.innerHTML = list.map(p=>{
+    const totalPrice = p.qty * (p.price || 0);
+    return `
+      <tr>
+        <td>${p.date}</td>
+        <td>${escapeHtml(p.supplier || '—')}</td>
+        <td>${escapeHtml(p.invoice || '—')}</td>
+        <td><strong>${escapeHtml(p.itemName)}</strong></td>
+        <td class="num">${p.qty}</td>
+        <td class="num">${cur()}${money(p.price)}</td>
+        <td class="num" style="font-weight:700;">${cur()}${money(totalPrice)}</td>
+        <td>${escapeHtml(p.notes || '—')}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-sm btn-danger" onclick="deletePurchase('${p.id}')">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function exportPurchaseCSV(){
+  const list = purchasesInRange();
+  if(list.length===0){ showToast('No purchases to export'); return; }
+  let rows = [['Purchase Date','Supplier','Invoice No','Item','Quantity','Purchase Price','Total Price','Notes']];
+  list.forEach(p=>{
+    rows.push([p.date, p.supplier||'', p.invoice||'', p.itemName, p.qty, p.price||0, p.qty*(p.price||0), p.notes||'']);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'purchases_'+document.getElementById('purRepFrom').value+'_to_'+document.getElementById('purRepTo').value+'.csv';
+  a.click();
+}
+
 function toggleBillDetail(id){
   const row = document.getElementById('detail-'+id);
   const wasOpen = row.classList.contains('open');
@@ -1432,7 +2631,7 @@ function saveSettings(){
   setTimeout(()=>s.style.display='none', 1800);
 }
 function exportData(){
-  const backup = { shop, items, bills, seq: loadJSON(LS.seq,0), exportedAt: new Date().toISOString() };
+  const backup = { shop, items, bills, purchases, adjustments, conversions, seq: loadJSON(LS.seq,0), exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1447,13 +2646,19 @@ function importData(e){
   reader.onload = function(ev){
     try{
       const data = JSON.parse(ev.target.result);
-      if(!confirm('This will replace all current data (shop, items, bills) with the backup file. Continue?')) return;
+      if(!confirm('This will replace all current data with the backup file. Continue?')) return;
       shop = data.shop || shop;
       items = data.items || [];
       bills = data.bills || [];
+      purchases = data.purchases || [];
+      adjustments = data.adjustments || [];
+      conversions = data.conversions || [];
       saveJSON(LS.shop, shop);
       saveJSON(LS.items, items);
       saveJSON(LS.bills, bills);
+      saveJSON(LS.purchases, purchases);
+      saveJSON(LS.adjustments, adjustments);
+      saveJSON(LS.conversions, conversions);
       if(data.seq) saveJSON(LS.seq, data.seq);
       refreshShopHeader();
       loadSettingsForm();
@@ -1468,13 +2673,9 @@ function importData(e){
   e.target.value = '';
 }
 function resetAllData(){
-  if(!confirm('This will permanently delete ALL items, bills, and settings on this device. Are you sure?')) return;
+  if(!confirm('This will permanently delete ALL items, bills, stock, purchases, and settings on this device. Are you sure?')) return;
   if(!confirm('Really sure? This cannot be undone.')) return;
-  localStorage.removeItem(LS.shop);
-  localStorage.removeItem(LS.items);
-  localStorage.removeItem(LS.bills);
-  localStorage.removeItem(LS.seq);
-  localStorage.removeItem(LS.cart);
+  localStorage.clear();
   location.reload();
 }
 
@@ -1491,9 +2692,12 @@ function init(){
   renderCart();
   renderItemGrid();
   document.getElementById('discountInput').addEventListener('input', renderCart);
-  // close modal on backdrop click
-  document.getElementById('itemModalOverlay').addEventListener('click', function(e){
-    if(e.target === this) closeItemModal();
+  
+  // Close modals on backdrop click
+  document.querySelectorAll('.overlay').forEach(ov => {
+    ov.addEventListener('click', function(e){
+      if(e.target === this) this.classList.remove('active');
+    });
   });
 }
 init();
